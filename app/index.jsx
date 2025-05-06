@@ -17,8 +17,13 @@ export default function Index() {
         resizeMode="cover"
         style={styles.image}
       >
-        <Text style={styles.title}>Kalanki Cafe {"\n"} By Ashok Neupane </Text>
+        <Text style={styles.title}>Onlinehome Cafe {"\n"} By Ashok Neupane </Text>
 
+        <Link href="/menu" asChild>
+          <Pressable style={styles.button}>
+            <Text style={styles.buttonText}>Our Menu</Text>
+          </Pressable>
+        </Link>
         <Link href="/contact" asChild>
           <Pressable style={styles.button}>
             <Text style={styles.buttonText}>Contact us:</Text>
@@ -59,6 +64,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     width: 200,
     alignItems: "center",
+    marginBottom:10,
   },
   buttonText: {
     color: "white",

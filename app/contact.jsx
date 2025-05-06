@@ -17,7 +17,7 @@ import * as ImagePicker from "expo-image-picker";
 
 // Cafe data (replace with actual data)
 const cafeData = {
-  name: "Kalanki Cafe",
+  name: "Onlinehome Cafe",
   description:
     "A cozy cafe in front of Kalanki Malpot, serving delicious coffee, pastries, and Nepali delicacies.",
   address: "Kalanki, Kathmandu, Nepal 44600",
