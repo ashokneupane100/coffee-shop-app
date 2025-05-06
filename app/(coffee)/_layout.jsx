@@ -1,8 +1,5 @@
-import {Slot} from 'expo-router';
-export default function CoffeeLayout(){
-    return
-    <Slot />
+import { Slot } from 'expo-router';
 
-
+export default function CoffeeLayout() {
+  return <Slot />;
 }
-
