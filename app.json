@@ -1,17 +1,12 @@
 {
   "expo": {
-    "name": "App by Ashok Neupane",
-    "slug": "MyApp",
+    "name": "CrudApp",
+    "slug": "CrudApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/coffee-icon.png",
-    "scheme": "myapp",
+    "icon": "./assets/images/icon.png",
+    "scheme": "crudapp",
     "userInterfaceStyle": "automatic",
-    "splash":{
-      "image":"./assets/images/coffee-splash.png",
-      "resizeMode":"cover",
-      "backgroundColor":"#000000"
-    },
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
