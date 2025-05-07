@@ -1,24 +1,15 @@
-const products = [
-    { id: 1, title: "Margherita Pizza", description: "Classic Margherita pizza with fresh tomatoes, mozzarella, and basil." },
-    { id: 2, title: "Pepperoni Pizza", description: "Spicy pepperoni with mozzarella cheese on a crispy crust." },
-    { id: 3, title: "Veggie Delight Pizza", description: "Loaded with bell peppers, onions, mushrooms, and olives." },
-    { id: 4, title: "BBQ Chicken Pizza", description: "Tangy BBQ sauce, grilled chicken, red onions, and cilantro." },
-    { id: 5, title: "Four Cheese Pizza", description: "A blend of mozzarella, cheddar, parmesan, and gorgonzola." },
-    { id: 6, title: "Hawaiian Pizza", description: "Ham and pineapple with a sweet and savory twist." },
-    { id: 7, title: "Spicy Sausage Pizza", description: "Spicy Italian sausage with jalapeños and mozzarella." },
-    { id: 8, title: "Mushroom Truffle Pizza", description: "Wild mushrooms, truffle oil, and arugula on a thin crust." },
-    { id: 9, title: "Buffalo Chicken Pizza", description: "Spicy buffalo sauce, grilled chicken, and blue cheese crumbles." },
-    { id: 10, title: "Pesto Veggie Pizza", description: "Basil pesto with spinach, artichokes, and sun-dried tomatoes." },
-    { id: 11, title: "Meat Lovers Pizza", description: "Pepperoni, sausage, ham, and bacon with mozzarella." },
-    { id: 12, title: "Supreme Pizza", description: "Pepperoni, sausage, bell peppers, onions, and olives." },
-    { id: 13, title: "Spinach Alfredo Pizza", description: "Creamy Alfredo sauce with spinach and mozzarella." },
-    { id: 14, title: "Taco Pizza", description: "Taco-seasoned beef, cheddar, lettuce, and salsa." },
-    { id: 15, title: "White Garlic Pizza", description: "Garlic white sauce with mozzarella and ricotta." },
-    { id: 16, title: "Prosciutto Arugula Pizza", description: "Prosciutto, arugula, and balsamic glaze on a thin crust." },
-    { id: 17, title: "Shrimp Scampi Pizza", description: "Garlic shrimp, lemon zest, and parsley with mozzarella." },
-    { id: 18, title: "Caprese Pizza", description: "Fresh tomatoes, mozzarella, basil, and balsamic reduction." },
-    { id: 19, title: "Philly Cheesesteak Pizza", description: "Steak, bell peppers, onions, and provolone cheese." },
-    { id: 20, title: "Dessert Nutella Pizza", description: "Sweet pizza with Nutella, strawberries, and powdered sugar." }
-  ];
-  
-  export default products;
+// constants/MenuItems.js
+export const MENU_ITEMS = [
+  { id: 1, title: "Espresso", description: "Strong concentrated coffee brewed by forcing hot water through finely-ground coffee beans." },
+  { id: 2, title: "Affogato", description: "A scoop of vanilla ice cream topped with a shot of hot espresso." },
+  { id: 3, title: "Americano", description: "Espresso diluted with hot water, similar strength to regular coffee but different flavor." },
+  { id: 4, title: "Cappuccino", description: "Equal parts espresso, steamed milk, and milk foam, often with a dusting of cocoa powder." },
+  { id: 5, title: "Cold Brew", description: "Coffee brewed with cold water over 12-24 hours, resulting in a less acidic, smoother taste." },
+  { id: 6, title: "Latte", description: "Espresso with steamed milk and a small layer of milk foam on top." },
+  { id: 7, title: "Macchiato", description: "Espresso 'stained' with a small amount of milk or milk foam." },
+  { id: 8, title: "Mocha", description: "Espresso with chocolate syrup or powder, steamed milk, and often topped with whipped cream." },
+  { id: 9, title: "Cortado", description: "Equal parts espresso and warm milk, reducing the acidity of the espresso." },
+  { id: 10, title: "Flat White", description: "Similar to a latte but with a higher ratio of coffee to milk and velvety microfoam." }
+];
+
+export default MENU_ITEMS;
