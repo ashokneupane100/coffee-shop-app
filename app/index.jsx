@@ -2,10 +2,20 @@ import { Text, View, TextInput, Pressable, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { data } from "@/data/todos";
+import{Inter_500Medium,useFonts} from "@expo-google-fonts/inter"
 
 export default function Index() {
   const [todos, setTodos] = useState(data.sort((a, b) => b.id - a.id));
   const [text, setText] = useState("");
+
+const[loaded,error]=useFonts({
+  Inter_500Medium,
+})
+
+if(!loaded && !error){
+  return null
+
+}
 
   const addTodo = () => {
     if (text.trim()) {
@@ -35,7 +45,7 @@ export default function Index() {
         {/* Input area */}
         <View style={{ flexDirection: 'row', marginBottom: 20 }}>
           <TextInput
-            style={{ flex: 1, borderWidth: 1, borderColor: '#ccc', padding: 10, borderRadius: 5 }}
+            style={{ flex: 1,fontFamily:"Inter_500Medium", borderWidth: 1, borderColor: '#ccc', padding: 10, borderRadius: 5 }}
             value={text}
             onChangeText={setText}
             placeholder="Add a new todo"
