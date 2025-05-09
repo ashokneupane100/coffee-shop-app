@@ -1,61 +1,20 @@
-import { Text, View, TextInput, Pressable, StyleSheet, FlatList } from "react-native";
+import { Text, View, TextInput, FlatList, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useContext, useEffect } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { Ionicons, Octicons, Feather } from '@expo/vector-icons';
-import Animated, { 
-  LinearTransition, 
-  useAnimatedStyle, 
-  useSharedValue, 
-  withRepeat, 
-  withSequence, 
-  withTiming,
-  Easing
-} from 'react-native-reanimated';
+import { Octicons, Feather } from '@expo/vector-icons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
-
 import { data } from "@/data/todos";
-
-const AnimatedText = Animated.createAnimatedComponent(Text);
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function Index() {
   const [todos, setTodos] = useState([]);
   const [text, setText] = useState('');
   const [showThemeSelector, setShowThemeSelector] = useState(false);
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
+  const isDark = colorScheme === 'dark';
   const router = useRouter();
-
-  // Animation values
-  const titleScale = useSharedValue(1);
-  const titleOpacity = useSharedValue(0);
-  const bgGradientValue = useSharedValue(0);
-  const addButtonScale = useSharedValue(1);
-
-  // Title animation
-  useEffect(() => {
-    titleOpacity.value = withTiming(1, { duration: 1000 });
-    
-    // Subtle continuous pulse animation
-    titleScale.value = withRepeat(
-      withSequence(
-        withTiming(1.05, { duration: 1500, easing: Easing.inOut(Easing.quad) }),
-        withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.quad) })
-      ),
-      -1, // Infinite repeats
-      true // Reverse on each sequence
-    );
-    
-    // Gradient background animation
-    bgGradientValue.value = withRepeat(
-      withTiming(1, { duration: 3000 }),
-      -1,
-      true
-    );
-  }, []);
 
   // Load todos from storage
   useEffect(() => {
@@ -70,12 +29,13 @@ export default function Index() {
           setTodos(data.sort((a, b) => b.id - a.id));
         }
       } catch (e) {
-        console.error(e);
+        console.error("Error loading todos:", e);
+        setTodos(data);
       }
     };
 
     fetchData();
-  }, [data]);
+  }, []); 
 
   // Save todos to storage when they change
   useEffect(() => {
@@ -84,327 +44,297 @@ export default function Index() {
         const jsonValue = JSON.stringify(todos);
         await AsyncStorage.setItem("TodoApp", jsonValue);
       } catch (e) {
-        console.error(e);
+        console.error("Error saving todos:", e);
       }
     };
 
-    storeData();
+    if (todos.length > 0) {
+      storeData();
+    }
   }, [todos]);
-
-  const styles = createStyles(theme, colorScheme);
 
   const addTodo = () => {
     if (text.trim()) {
-      // Add button animation
-      addButtonScale.value = withSequence(
-        withTiming(0.9, { duration: 100 }),
-        withTiming(1.1, { duration: 100 }),
-        withTiming(1, { duration: 100 })
-      );
+      const newId = todos.length > 0 ? Math.max(...todos.map(t => t.id)) + 1 : 1;
+      const newTodo = { id: newId, title: text, completed: false };
       
-      const newId = todos.length > 0 ? todos[0].id + 1 : 1;
-      setTodos([{ id: newId, title: text, completed: false }, ...todos]);
+      setTodos([newTodo, ...todos]);
       setText('');
     }
   };
 
-  const toggleTodo = (id) => {
-    setTodos(todos.map(todo => todo.id === id ? { ...todo, completed: !todo.completed } : todo));
-  };
-
-  const removeTodo = (id) => {
-    setTodos(todos.filter(todo => todo.id !== id));
-  };
-
-  const handlePress = (id) => {
+  // Navigate to todo details on regular press
+  const navigateToDetails = (id) => {
     router.push(`/todos/${id}`);
   };
 
-  const toggleThemeSelector = () => {
-    setShowThemeSelector(!showThemeSelector);
+  // Toggle completion status on long press
+  const toggleTodo = (id) => {
+    const newTodos = todos.map(todo => 
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+    );
+    setTodos(newTodos);
   };
 
-  // Animated styles
-  const titleAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { scale: titleScale.value }
-      ],
-      opacity: titleOpacity.value,
-    };
-  });
-
-  const titleBackgroundStyle = useAnimatedStyle(() => {
-    const backgroundColor = colorScheme === 'dark' 
-      ? `rgba(80, 40, 100, ${0.7 + bgGradientValue.value * 0.3})` 
-      : `rgba(255, 165, 0, ${0.7 + bgGradientValue.value * 0.3})`;
-      
-    return {
-      backgroundColor,
-      transform: [
-        { scale: 1 + bgGradientValue.value * 0.03 }
+  const confirmDelete = (id) => {
+    Alert.alert(
+      "Delete Task",
+      "Are you sure you want to delete this task?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          onPress: () => {
+            setTodos(todos.filter(todo => todo.id !== id));
+          },
+          style: "destructive"
+        }
       ]
-    };
-  });
-
-  const addButtonAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: addButtonScale.value }]
-    };
-  });
-
-  const renderItem = ({ item }) => (
-    <Animated.View 
-      style={styles.todoItem}
-      entering={LinearTransition.springify()}
-      exiting={LinearTransition.springify()}
-      layout={LinearTransition.springify()}
-    >
-      <Pressable
-        onPress={() => handlePress(item.id)}
-        onLongPress={() => toggleTodo(item.id)}
-        style={{ flex: 1 }}
-      >
-        <Text style={[styles.todoText, item.completed && styles.completedText]}>
-          {item.title}
-        </Text>
-      </Pressable>
-      <Pressable onPress={() => removeTodo(item.id)} style={styles.deleteButton}>
-        <MaterialCommunityIcons 
-          name="delete-circle" 
-          size={36} 
-          color={colorScheme === 'dark' ? "#ff6b6b" : "#ff5252"} 
-        />
-      </Pressable>
-    </Animated.View>
-  );
+    );
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Animated.View style={[styles.titleBackground, titleBackgroundStyle]}>
-          <AnimatedText style={[styles.title, titleAnimatedStyle]}>
+    <SafeAreaView style={{
+      flex: 1,
+      backgroundColor: theme.background,
+    }}>
+      <View style={{
+        alignItems: 'center',
+        paddingVertical: 20,
+      }}>
+        <View style={{
+          backgroundColor: isDark ? '#6a5acd' : '#ff9800',
+          borderRadius: 15,
+          padding: 15,
+          marginBottom: 20,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.27,
+          shadowRadius: 4.65,
+          elevation: 6,
+        }}>
+          <Text style={{
+            fontSize: 26,
+            fontWeight: 'bold',
+            color: '#ffffff',
+            textAlign: 'center',
+          }}>
             Todo List by Ashok Neupane
-          </AnimatedText>
-        </Animated.View>
+          </Text>
+        </View>
       </View>
 
-      <View style={styles.inputContainer}>
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 15,
+        paddingHorizontal: 15,
+      }}>
         <TextInput
-          style={styles.input}
-          maxLength={30}
+          style={{
+            flex: 1,
+            borderColor: isDark ? '#555' : '#ddd',
+            borderWidth: 1,
+            borderRadius: 8,
+            padding: 12,
+            marginRight: 10,
+            fontSize: 16,
+            color: theme.text,
+            backgroundColor: isDark ? '#333' : '#fff',
+          }}
           placeholder="Add a new todo"
-          placeholderTextColor={colorScheme === 'dark' ? "#aaa" : "#777"}
+          placeholderTextColor={isDark ? "#aaa" : "#777"}
           value={text}
           onChangeText={setText}
+          onSubmitEditing={addTodo}
+          returnKeyType="done"
         />
-        <AnimatedPressable 
+        <TouchableOpacity 
           onPress={addTodo} 
-          style={[styles.addButton, addButtonAnimatedStyle]}
+          style={{
+            backgroundColor: theme.button,
+            borderRadius: 5,
+            padding: 10,
+          }}
         >
-          <Text style={styles.addButtonText}>Add</Text>
-        </AnimatedPressable>
-        <Pressable
-          onPress={toggleThemeSelector} 
-          style={styles.themeToggle}
+          <Text style={{
+            fontSize: 16,
+            fontWeight: '500',
+            color: isDark ? '#000' : '#fff',
+          }}>Add</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setShowThemeSelector(!showThemeSelector)} 
+          style={{
+            marginLeft: 10,
+            padding: 8,
+            borderRadius: 20,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+          }}
         >
           <Octicons 
-            name={colorScheme === 'dark' ? "moon" : "sun"} 
+            name={isDark ? "moon" : "sun"} 
             size={28} 
             color={theme.text} 
           />
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       {showThemeSelector && (
-        <View style={styles.themeSelectorContainer}>
-          <Pressable 
-            style={[
-              styles.themeOption, 
-              colorScheme === 'light' && styles.selectedThemeOption,
-              { backgroundColor: 'rgba(255, 165, 0, 0.2)' }
-            ]} 
+        <View style={{
+          marginHorizontal: 15,
+          marginBottom: 15,
+          borderRadius: 10,
+          backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
+          padding: 12,
+        }}>
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              padding: 12,
+              borderRadius: 8,
+              marginVertical: 4,
+              backgroundColor: 'rgba(255, 165, 0, 0.2)',
+              borderWidth: colorScheme === 'light' ? 1 : 0,
+              borderColor: '#ff9800',
+            }} 
             onPress={() => {
               setColorScheme('light');
               setShowThemeSelector(false);
             }}
           >
-            <Ionicons name="sunny" size={24} color="#ff9800" />
-            <Text style={styles.themeOptionText}>Light Theme</Text>
-            {colorScheme === 'light' && (
-              <Feather name="check" size={18} color="#ff9800" style={styles.checkIcon} />
-            )}
-          </Pressable>
+            <Text style={{
+              fontSize: 16,
+              fontWeight: '500',
+              color: theme.text,
+            }}>Light Theme</Text>
+          </TouchableOpacity>
           
-          <Pressable 
-            style={[
-              styles.themeOption, 
-              colorScheme === 'dark' && styles.selectedThemeOption,
-              { backgroundColor: 'rgba(111, 66, 193, 0.2)' }
-            ]} 
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              padding: 12,
+              borderRadius: 8,
+              marginVertical: 4,
+              backgroundColor: 'rgba(111, 66, 193, 0.2)',
+              borderWidth: colorScheme === 'dark' ? 1 : 0,
+              borderColor: '#6a5acd',
+            }} 
             onPress={() => {
               setColorScheme('dark');
               setShowThemeSelector(false);
             }}
           >
-            <Ionicons name="moon" size={24} color="#6a5acd" />
-            <Text style={styles.themeOptionText}>Dark Theme</Text>
-            {colorScheme === 'dark' && (
-              <Feather name="check" size={18} color="#6a5acd" style={styles.checkIcon} />
-            )}
-          </Pressable>
+            <Text style={{
+              fontSize: 16,
+              fontWeight: '500',
+              color: theme.text,
+            }}>Dark Theme</Text>
+          </TouchableOpacity>
         </View>
       )}
 
-      <Animated.FlatList
-        data={todos}
-        renderItem={renderItem}
-        keyExtractor={todo => todo.id.toString()}
-        contentContainerStyle={styles.listContainer}
-        itemLayoutAnimation={LinearTransition.springify()}
-        keyboardDismissMode="on-drag"
-      />
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+      {todos.length === 0 ? (
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20,
+        }}>
+          <Feather name="clipboard" size={50} color={isDark ? '#555' : '#ccc'} />
+          <Text style={{
+            marginTop: 10,
+            fontSize: 16,
+            color: isDark ? '#888' : '#aaa',
+            textAlign: 'center',
+          }}>No tasks yet. Add a new task above!</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={todos}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              // Short press navigates to details
+              onPress={() => navigateToDetails(item.id)}
+              // Long press toggles completion
+              onLongPress={() => toggleTodo(item.id)}
+              delayLongPress={500}
+            >
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginVertical: 6,
+                marginHorizontal: 15,
+                padding: 15,
+                borderRadius: 8,
+                backgroundColor: isDark ? '#222' : '#fff',
+                borderLeftWidth: 5,
+                borderLeftColor: isDark ? '#6a5acd' : '#ff9800',
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: isDark ? 0.3 : 0.1,
+                shadowRadius: 2.22,
+                elevation: 3,
+              }}>
+                <View style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}>
+                  <View style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 4,
+                    borderWidth: 2,
+                    borderColor: isDark ? '#6a5acd' : '#ff9800',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: item.completed ? (isDark ? '#6a5acd' : '#ff9800') : 'transparent',
+                    marginRight: 12,
+                  }}>
+                    {item.completed && (
+                      <Feather name="check" size={14} color="#fff" />
+                    )}
+                  </View>
+                  <Text style={{
+                    fontSize: 16,
+                    textDecorationLine: item.completed ? 'line-through' : 'none',
+                    color: item.completed ? (isDark ? '#888' : '#aaa') : theme.text,
+                  }}>
+                    {item.title}
+                  </Text>
+                </View>
+                
+                <TouchableOpacity 
+                  onPress={() => confirmDelete(item.id)} 
+                  style={{
+                    backgroundColor: isDark ? '#442639' : '#ffebee',
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    borderRadius: 5,
+                    borderWidth: 1,
+                    borderColor: isDark ? '#ff6b6b' : '#ff5252',
+                  }}
+                >
+                  <Text style={{
+                    color: '#ff5252',
+                    fontWeight: 'bold',
+                    fontSize: 14,
+                  }}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          )}
+          keyExtractor={item => item.id.toString()}
+          contentContainerStyle={{
+            paddingBottom: 20,
+          }}
+        />
+      )}
+      <StatusBar style={isDark ? 'light' : 'dark'} />
     </SafeAreaView>
   );
-}
-
-function createStyles(theme, colorScheme) {
-  const isDark = colorScheme === 'dark';
-  
-  return StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.background,
-    },
-    header: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 20,
-      paddingHorizontal: 10,
-    },
-    titleBackground: {
-      borderRadius: 15,
-      padding: 15,
-      marginBottom: 20,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.27,
-      shadowRadius: 4.65,
-      elevation: 6,
-    },
-    title: {
-      fontSize: 26,
-      fontWeight: 'bold',
-      color: isDark ? '#ffffff' : '#ffffff',
-      textAlign: 'center',
-      textShadowColor: 'rgba(0, 0, 0, 0.3)',
-      textShadowOffset: { width: 1, height: 1 },
-      textShadowRadius: 3
-    },
-    inputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 15,
-      paddingHorizontal: 15,
-      paddingVertical: 5,
-      width: '100%',
-      maxWidth: 1024,
-      marginHorizontal: 'auto',
-    },
-    input: {
-      flex: 1,
-      borderColor: isDark ? '#555' : '#ddd',
-      borderWidth: 1,
-      borderRadius: 8,
-      padding: 12,
-      marginRight: 10,
-      fontSize: 16,
-      color: theme.text,
-      backgroundColor: isDark ? '#333' : '#fff',
-    },
-    addButton: {
-      backgroundColor: theme.button,
-      borderRadius: 5,
-      padding: 10,
-    },
-    addButtonText: {
-      fontSize: 16,
-      fontWeight: '500',
-      color: isDark ? '#000' : '#fff',
-    },
-    themeToggle: {
-      marginLeft: 10,
-      padding: 8,
-      borderRadius: 20,
-      backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-    },
-    themeSelectorContainer: {
-      marginHorizontal: 15,
-      marginBottom: 15,
-      borderRadius: 10,
-      backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-      padding: 12,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: isDark ? 0.25 : 0.1,
-      shadowRadius: 3.84,
-      elevation: 5,
-    },
-    themeOption: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 12,
-      borderRadius: 8,
-      marginVertical: 4,
-    },
-    selectedThemeOption: {
-      borderWidth: 1,
-      borderColor: isDark ? '#6a5acd' : '#ff9800',
-    },
-    themeOptionText: {
-      marginLeft: 12,
-      fontSize: 16,
-      fontWeight: '500',
-      color: theme.text,
-    },
-    checkIcon: {
-      marginLeft: 'auto',
-    },
-    listContainer: {
-      flexGrow: 1,
-      paddingHorizontal: 15,
-      paddingBottom: 20,
-    },
-    todoItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: 15,
-      marginVertical: 6,
-      borderRadius: 8,
-      backgroundColor: isDark ? '#222' : '#fff',
-      borderLeftWidth: 5,
-      borderLeftColor: isDark ? '#6a5acd' : '#ff9800',
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: isDark ? 0.3 : 0.1,
-      shadowRadius: 2.22,
-      elevation: 3,
-      width: '100%',
-      maxWidth: 1024,
-      marginHorizontal: 'auto',
-    },
-    todoText: {
-      fontSize: 16,
-      color: theme.text,
-    },
-    completedText: {
-      textDecorationLine: 'line-through',
-      color: isDark ? '#888' : '#aaa',
-    },
-    deleteButton: {
-      padding: 5,
-    }
-  });
 }
